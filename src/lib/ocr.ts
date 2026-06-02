@@ -49,7 +49,13 @@ export async function leerTicket(
 ): Promise<string> {
   const procesada = await preprocesar(imagen).catch(() => imagen);
 
+  // Archivos servidos desde la propia app (public/tesseract): así el OCR no
+  // depende de ningún CDN externo y funciona aunque haya service worker o
+  // restricciones de red. Ver public/tesseract/.
   const worker = await createWorker('spa', 1, {
+    workerPath: '/tesseract/worker.min.js',
+    corePath: '/tesseract',
+    langPath: '/tesseract/lang',
     logger: (m) => {
       if (m.status === 'recognizing text' && onProgress) {
         onProgress(m.progress);

@@ -49,8 +49,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Cachea la app para que funcione sin conexión.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Cachea la app para que funcione sin conexión (incluye los archivos
+        // del OCR en public/tesseract: .wasm y el idioma .gz).
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm,gz}'],
+        // Los núcleos wasm del OCR pesan ~5 MB; subimos el límite para cachearlos.
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),
   ],

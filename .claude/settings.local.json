@@ -18,7 +18,11 @@
       "Bash(git commit -q -m 'Arreglos: grafica 6 meses robusta, validar ticker antes de anadir, boton recargar precio por activo *)",
       "Bash(git commit -q -m 'Cartera mejorada: 2 modos de alta \\(cantidad/importe\\), ficha detalle, venta con confirmacion e historico de rentabilidad realizada *)",
       "Bash(git commit -q -m 'Copia de seguridad: exportar/importar datos \\(.json\\) y almacenamiento persistente *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(node -p \"require\\('./node_modules/tesseract.js/package.json'\\).version\")",
+      "Bash(node -p \"require\\('./node_modules/tesseract.js-core/package.json'\\).version\")",
+      "Bash(curl -sSL -o public/tesseract/lang/spa.traineddata.gz https://tessdata.projectnaptha.com/4.0.0_fast/spa.traineddata.gz)",
+      "Bash(stat -c %s public/tesseract/lang/spa.traineddata.gz)"
     ]
   }
 }

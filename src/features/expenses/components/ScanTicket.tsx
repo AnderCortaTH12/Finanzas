@@ -82,8 +82,9 @@ export function ScanTicket({ open, onClose }: ScanTicketProps) {
       setTextoCrudo(r.textoCrudo);
       setFase('confirmar');
     } catch (err) {
-      console.error(err);
-      setError('No se pudo leer la imagen. Prueba con otra foto más nítida.');
+      console.error('Error OCR:', err);
+      const detalle = err instanceof Error ? err.message : String(err);
+      setError(`No se pudo leer la imagen: ${detalle}`);
       setFase('inicio');
     } finally {
       // permite volver a elegir el mismo archivo
