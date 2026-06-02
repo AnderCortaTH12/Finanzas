@@ -6,6 +6,7 @@ import { useApp } from '@/app/providers';
 import { deleteUsuario } from './profileService';
 import { NewProfileForm } from './components/NewProfileForm';
 import { ThemeCard } from '@/features/theme/ThemeCard';
+import { BackupCard } from '@/features/backup/BackupCard';
 
 /** Ajustes: perfil activo, cambio de perfil y gestión de perfiles. */
 export function SettingsPage() {
@@ -47,8 +48,11 @@ export function SettingsPage() {
         </Card>
       )}
 
-      {/* Tema (modo oscuro) — se monta en la Fase 5 */}
+      {/* Tema (modo oscuro) */}
       <ThemeCard />
+
+      {/* Copia de seguridad (exportar / importar) */}
+      <BackupCard />
 
       {/* Gestión de perfiles */}
       <Card className="p-4">

@@ -51,6 +51,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Inicialización: semilla + recupera el último perfil activo.
   useEffect(() => {
     (async () => {
+      // Pide a iOS/el navegador que NO borre los datos automáticamente.
+      // Es "mejor esfuerzo": ayuda, pero la copia manual sigue siendo la red de seguridad.
+      if (navigator.storage?.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
       await seedIfEmpty();
       setActivoId(localStorage.getItem(STORAGE_KEY));
       setListo(true);

@@ -16,7 +16,8 @@
       "Bash(git push *)",
       "Bash(git check-ignore *)",
       "Bash(git commit -q -m 'Arreglos: grafica 6 meses robusta, validar ticker antes de anadir, boton recargar precio por activo *)",
-      "Bash(git commit -q -m 'Cartera mejorada: 2 modos de alta \\(cantidad/importe\\), ficha detalle, venta con confirmacion e historico de rentabilidad realizada *)"
+      "Bash(git commit -q -m 'Cartera mejorada: 2 modos de alta \\(cantidad/importe\\), ficha detalle, venta con confirmacion e historico de rentabilidad realizada *)",
+      "Bash(git commit -q -m 'Copia de seguridad: exportar/importar datos \\(.json\\) y almacenamiento persistente *)"
     ]
   }
 }
