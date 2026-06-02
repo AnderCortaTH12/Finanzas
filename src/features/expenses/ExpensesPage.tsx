@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
 import { Plus, Camera, Package } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import type { Gasto } from '@/models/types';
 import { useApp } from '@/app/providers';
 import { categoriasById } from '@/features/categories/categoryService';
 import {
@@ -23,6 +24,7 @@ export function ExpensesPage() {
   const { usuario, cargando } = useApp();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [gastoEditar, setGastoEditar] = useState<Gasto | null>(null);
 
   const mesActual = currentMonthKey();
   const mesAnterior = previousMonthKey();
@@ -88,7 +90,14 @@ export function ExpensesPage() {
       {/* Lista de movimientos */}
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-500 mb-1">Movimientos</h2>
-        <ExpenseList gastos={gastos ?? []} categorias={categorias} />
+        <ExpenseList
+          gastos={gastos ?? []}
+          categorias={categorias}
+          onEditar={(g) => {
+            setGastoEditar(g);
+            setSheetOpen(true);
+          }}
+        />
       </Card>
 
       {/* Botón flotante: escanear ticket con la cámara */}
@@ -105,7 +114,10 @@ export function ExpensesPage() {
 
       {/* Botón flotante para añadir gasto a mano */}
       <button
-        onClick={() => setSheetOpen(true)}
+        onClick={() => {
+          setGastoEditar(null);
+          setSheetOpen(true);
+        }}
         className="fixed right-5 z-40 flex h-14 w-14 items-center justify-center
                    rounded-full bg-accent text-white shadow-lg active:scale-95 transition"
         style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
@@ -114,7 +126,14 @@ export function ExpensesPage() {
         <Plus size={28} />
       </button>
 
-      <QuickAddExpense open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <QuickAddExpense
+        open={sheetOpen}
+        gastoEditar={gastoEditar}
+        onClose={() => {
+          setSheetOpen(false);
+          setGastoEditar(null);
+        }}
+      />
       <ScanTicket open={scanOpen} onClose={() => setScanOpen(false)} />
     </div>
   );

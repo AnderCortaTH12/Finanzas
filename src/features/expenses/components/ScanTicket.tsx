@@ -270,6 +270,20 @@ export function ScanTicket({ open, onClose }: ScanTicketProps) {
             ))}
           </div>
 
+          {/* Texto leído por el OCR (para revisar / corregir) */}
+          <details className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2">
+            <summary className="cursor-pointer text-xs font-semibold text-slate-500">
+              Texto leído {textoCrudo.trim() ? '' : '(vacío — no se reconoció nada)'}
+            </summary>
+            <textarea
+              value={textoCrudo}
+              onChange={(e) => setTextoCrudo(e.target.value)}
+              rows={6}
+              className="mt-2 w-full rounded-lg border border-slate-200 dark:border-slate-700
+                         bg-transparent px-2 py-1.5 text-xs text-slate-700 dark:text-slate-300"
+            />
+          </details>
+
           {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
           <div className="flex gap-3 pt-1">

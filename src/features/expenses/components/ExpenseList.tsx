@@ -1,17 +1,19 @@
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Categoria, Gasto } from '@/models/types';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { formatEur } from '@/lib/money';
 import { formatDate } from '@/lib/dates';
-import { deleteGasto } from '../expenseService';
+import { borrarTicket } from '../inventoryService';
 
 interface ExpenseListProps {
   gastos: Gasto[];
   categorias: Map<string, Categoria>;
+  /** Abre el formulario para editar el gasto pulsado. */
+  onEditar?: (gasto: Gasto) => void;
 }
 
-/** Lista de gastos individuales con icono de categoría, importe y borrado. */
-export function ExpenseList({ gastos, categorias }: ExpenseListProps) {
+/** Lista de gastos individuales con icono de categoría, importe, editar y borrar. */
+export function ExpenseList({ gastos, categorias, onEditar }: ExpenseListProps) {
   if (gastos.length === 0) {
     return (
       <p className="text-center text-slate-400 py-8">
@@ -43,8 +45,17 @@ export function ExpenseList({ gastos, categorias }: ExpenseListProps) {
             <span className="font-semibold text-slate-900 dark:text-white">
               {formatEur(g.importe)}
             </span>
+            {onEditar && (
+              <button
+                onClick={() => onEditar(g)}
+                className="p-2 text-slate-300 hover:text-accent"
+                aria-label="Editar gasto"
+              >
+                <Pencil size={18} />
+              </button>
+            )}
             <button
-              onClick={() => deleteGasto(g.id)}
+              onClick={() => borrarTicket(g.id)}
               className="p-2 text-slate-300 hover:text-red-500"
               aria-label="Borrar gasto"
             >

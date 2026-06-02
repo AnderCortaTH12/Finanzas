@@ -4,20 +4,24 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
 import { CategoryPicker } from '@/features/categories/components/CategoryPicker';
 import { listCategorias } from '@/features/categories/categoryService';
-import { addGasto } from '../expenseService';
-import { parseEurInput } from '@/lib/money';
+import { addGasto, updateGasto } from '../expenseService';
+import { parseEurInput, centsToEuros } from '@/lib/money';
 import { todayIso } from '@/lib/dates';
 import { useUsuarioId } from '@/app/providers';
+import type { Gasto } from '@/models/types';
 
 interface QuickAddExpenseProps {
   open: boolean;
   onClose: () => void;
+  /** Si se pasa, el formulario edita ese gasto en vez de crear uno nuevo. */
+  gastoEditar?: Gasto | null;
 }
 
-/** Formulario rápido para registrar un gasto en pocos toques. */
-export function QuickAddExpense({ open, onClose }: QuickAddExpenseProps) {
+/** Formulario rápido para registrar (o editar) un gasto en pocos toques. */
+export function QuickAddExpense({ open, onClose, gastoEditar }: QuickAddExpenseProps) {
   const usuarioId = useUsuarioId();
   const categorias = useLiveQuery(() => listCategorias(), []) ?? [];
+  const editando = !!gastoEditar;
 
   const [importe, setImporte] = useState('');
   const [categoriaId, setCategoriaId] = useState<string | null>(null);
@@ -25,16 +29,23 @@ export function QuickAddExpense({ open, onClose }: QuickAddExpenseProps) {
   const [nota, setNota] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Reinicia el formulario cada vez que se abre.
+  // Al abrir: rellena con el gasto a editar, o limpia para uno nuevo.
   useEffect(() => {
     if (open) {
-      setImporte('');
-      setCategoriaId(null);
-      setFecha(todayIso());
-      setNota('');
+      if (gastoEditar) {
+        setImporte(centsToEuros(gastoEditar.importe).toFixed(2).replace('.', ','));
+        setCategoriaId(gastoEditar.categoriaId);
+        setFecha(gastoEditar.fecha);
+        setNota(gastoEditar.nota ?? '');
+      } else {
+        setImporte('');
+        setCategoriaId(null);
+        setFecha(todayIso());
+        setNota('');
+      }
       setError(null);
     }
-  }, [open]);
+  }, [open, gastoEditar]);
 
   async function handleGuardar() {
     const cents = parseEurInput(importe);
@@ -46,12 +57,21 @@ export function QuickAddExpense({ open, onClose }: QuickAddExpenseProps) {
       setError('Elige una categoría');
       return;
     }
-    await addGasto({ usuarioId, importe: cents, categoriaId, fecha, nota: nota.trim() || undefined });
+    if (editando && gastoEditar) {
+      await updateGasto(gastoEditar.id, {
+        importe: cents,
+        categoriaId,
+        fecha,
+        nota: nota.trim() || undefined,
+      });
+    } else {
+      await addGasto({ usuarioId, importe: cents, categoriaId, fecha, nota: nota.trim() || undefined });
+    }
     onClose();
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Nuevo gasto">
+    <Sheet open={open} onClose={onClose} title={editando ? 'Editar gasto' : 'Nuevo gasto'}>
       <div className="space-y-5">
         {/* Importe: campo grande y protagonista */}
         <div>
