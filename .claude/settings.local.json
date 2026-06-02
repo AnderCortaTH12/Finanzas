@@ -10,7 +10,12 @@
       "Bash(git config *)",
       "Bash(git init *)",
       "Bash(git branch *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'Finanzas Familiares: PWA completa \\(fases 1-5 + estadisticas\\) *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git check-ignore *)",
+      "Bash(git commit -q -m 'Arreglos: grafica 6 meses robusta, validar ticker antes de anadir, boton recargar precio por activo *)"
     ]
   }
 }

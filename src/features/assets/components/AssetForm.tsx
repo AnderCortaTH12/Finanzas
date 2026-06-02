@@ -3,12 +3,15 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
 import { parseEurInput } from '@/lib/money';
 import { useUsuarioId } from '@/app/providers';
-import { addActivo } from '../assetService';
-import { db } from '@/db/database';
-import { refrescarActivo } from '@/features/prices/priceRefreshService';
+import { addActivo, updateActivo } from '../assetService';
+import {
+  obtenerPrecioTicker,
+  hayProveedorConfigurado,
+} from '@/features/prices/priceRefreshService';
+import { nowIso } from '@/lib/dates';
 
 /** ¿Hay clave de Finnhub configurada? Si no, no podemos validar el ticker. */
-const HAY_CLAVE = Boolean(import.meta.env.VITE_FINNHUB_API_KEY);
+const HAY_CLAVE = hayProveedorConfigurado();
 
 interface AssetFormProps {
   open: boolean;
@@ -49,6 +52,26 @@ export function AssetForm({ open, onClose }: AssetFormProps) {
     setError(null);
     setGuardando(true);
 
+    // 1) Si hay clave, validamos el ticker ANTES de crear nada. Si no existe,
+    //    no se añade el activo y se avisa para corregirlo.
+    let precioActual: number | undefined;
+    if (HAY_CLAVE) {
+      try {
+        const precio = await obtenerPrecioTicker(tkr);
+        precioActual = precio.precio;
+      } catch (e) {
+        setGuardando(false);
+        setError(
+          e instanceof Error && /Sin precio/.test(e.message)
+            ? `No encontramos el ticker "${tkr}". Revísalo (ej. AAPL, MSFT).`
+            : 'No se pudo verificar el ticker (¿sin conexión?). Inténtalo de nuevo.',
+        );
+        return; // no se crea el activo
+      }
+    }
+
+    // 2) El ticker es válido (o no hay clave para validar): creamos el activo,
+    //    ya con su precio actual si lo hemos obtenido.
     const id = await addActivo({
       usuarioId,
       ticker: tkr,
@@ -56,28 +79,11 @@ export function AssetForm({ open, onClose }: AssetFormProps) {
       cantidad: cant,
       precioCompra: precioCents,
     });
-
-    const activo = await db.activos.get(id);
-    if (!activo) {
-      setGuardando(false);
-      return;
-    }
-
-    // Si hay clave, validamos el ticker buscando su precio. Si falla (ticker
-    // inexistente o sin conexión), borramos el activo y avisamos para corregir.
-    if (HAY_CLAVE) {
-      try {
-        await refrescarActivo(activo);
-      } catch (e) {
-        await db.activos.delete(id);
-        setGuardando(false);
-        setError(
-          e instanceof Error && /Sin precio/.test(e.message)
-            ? `No encontramos el ticker "${tkr}". Revísalo (ej. AAPL, MSFT).`
-            : 'No se pudo verificar el ticker (¿sin conexión?). Inténtalo de nuevo.',
-        );
-        return;
-      }
+    if (precioActual !== undefined) {
+      await updateActivo(id, {
+        ultimoPrecio: precioActual,
+        fechaUltimoPrecio: nowIso(),
+      });
     }
 
     setGuardando(false);

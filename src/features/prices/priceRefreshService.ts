@@ -1,5 +1,5 @@
 import { db } from '@/db/database';
-import type { Activo, PriceProvider } from '@/models/types';
+import type { Activo, PriceProvider, Precio } from '@/models/types';
 import { FinnhubProvider } from './FinnhubProvider';
 import { nowIso } from '@/lib/dates';
 
@@ -13,6 +13,19 @@ let provider: PriceProvider = new FinnhubProvider();
 /** Permite inyectar otro proveedor (tests o sustituir Finnhub). */
 export function setPriceProvider(p: PriceProvider): void {
   provider = p;
+}
+
+/** ¿Hay clave de Finnhub configurada? Sin clave no se puede validar ni cotizar. */
+export function hayProveedorConfigurado(): boolean {
+  return Boolean(import.meta.env.VITE_FINNHUB_API_KEY);
+}
+
+/**
+ * Obtiene el precio de un ticker SIN crear ningún activo. Sirve para validar
+ * que el ticker existe antes de guardarlo. Lanza si no existe o falla la red.
+ */
+export function obtenerPrecioTicker(ticker: string): Promise<Precio> {
+  return provider.getPrecio(ticker);
 }
 
 /** ¿El precio del activo es viejo (>= 6h) o no existe? */

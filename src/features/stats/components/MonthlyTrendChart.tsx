@@ -2,6 +2,7 @@ import {
   BarChart,
   Bar,
   XAxis,
+  YAxis,
   Cell,
   ResponsiveContainer,
   Tooltip,
@@ -38,18 +39,33 @@ export function MonthlyTrendChart({ datos }: MonthlyTrendChartProps) {
     esActual: i === datos.length - 1, // el último es el mes en curso
   }));
 
+  // Si no hay ningún gasto en toda la ventana, evitamos un gráfico vacío.
+  const hayDatos = chartData.some((d) => d.totalCents > 0);
+  if (!hayDatos) {
+    return (
+      <div className="flex h-44 items-center justify-center text-center text-sm text-slate-400">
+        Aún no hay histórico suficiente.
+        <br />
+        Verás la evolución según registres gastos.
+      </div>
+    );
+  }
+
   return (
-    <div className="h-44">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
+    // minHeight asegura que el contenedor tenga altura aunque el layout tarde.
+    <div className="h-44" style={{ minHeight: 176 }}>
+      <ResponsiveContainer width="100%" height="100%" minHeight={176}>
+        <BarChart data={chartData} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
           <XAxis
             dataKey="mes"
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 12, fill: '#94a3b8' }}
           />
+          {/* Eje Y oculto: solo sirve para que las barras escalen bien. */}
+          <YAxis hide domain={[0, 'dataMax']} />
           <Tooltip cursor={{ fill: 'transparent' }} content={<TooltipBarra />} />
-          <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={36}>
+          <Bar dataKey="total" radius={[6, 6, 0, 0]} minPointSize={3} maxBarSize={40}>
             {chartData.map((d, i) => (
               <Cell key={i} fill={d.esActual ? '#10b981' : '#cbd5e1'} />
             ))}
