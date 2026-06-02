@@ -6,6 +6,7 @@ import type {
   Activo,
   GastoRecurrente,
   Presupuesto,
+  LineaCompra,
 } from '@/models/types';
 
 /**
@@ -19,6 +20,7 @@ export class FinanzasDB extends Dexie {
   activos!: Table<Activo, string>;
   gastosRecurrentes!: Table<GastoRecurrente, string>;
   presupuestos!: Table<Presupuesto, string>;
+  lineasCompra!: Table<LineaCompra, string>;
 
   constructor() {
     super('finanzas-familiares');
@@ -48,6 +50,11 @@ export class FinanzasDB extends Dexie {
             if (!a.estado) a.estado = 'activa';
           }),
       );
+
+    // v3: añade la tabla de líneas de compra (inventario de productos de tickets).
+    this.version(3).stores({
+      lineasCompra: 'id, usuarioId, gastoId, nombreNorm, fecha',
+    });
   }
 }
 

@@ -6,13 +6,14 @@ import type {
   Activo,
   GastoRecurrente,
   Presupuesto,
+  LineaCompra,
 } from '@/models/types';
 import { nowIso } from '@/lib/dates';
 
 /** Estructura del archivo de copia de seguridad (.json). */
 export interface CopiaSeguridad {
   app: 'finanzas-familiares';
-  version: 1;
+  version: 1 | 2;
   exportadoEn: string;
   datos: {
     usuarios: Usuario[];
@@ -21,6 +22,8 @@ export interface CopiaSeguridad {
     activos: Activo[];
     gastosRecurrentes: GastoRecurrente[];
     presupuestos: Presupuesto[];
+    /** v2: líneas de compra (inventario). Las copias v1 no la traen. */
+    lineasCompra?: LineaCompra[];
   };
 }
 
@@ -29,7 +32,7 @@ export type ModoImport = 'reemplazar' | 'fusionar';
 
 /** Lee TODOS los datos (todos los perfiles) y devuelve la copia. */
 export async function exportarDatos(): Promise<CopiaSeguridad> {
-  const [usuarios, categorias, gastos, activos, gastosRecurrentes, presupuestos] =
+  const [usuarios, categorias, gastos, activos, gastosRecurrentes, presupuestos, lineasCompra] =
     await Promise.all([
       db.usuarios.toArray(),
       db.categorias.toArray(),
@@ -37,13 +40,22 @@ export async function exportarDatos(): Promise<CopiaSeguridad> {
       db.activos.toArray(),
       db.gastosRecurrentes.toArray(),
       db.presupuestos.toArray(),
+      db.lineasCompra.toArray(),
     ]);
 
   return {
     app: 'finanzas-familiares',
-    version: 1,
+    version: 2,
     exportadoEn: nowIso(),
-    datos: { usuarios, categorias, gastos, activos, gastosRecurrentes, presupuestos },
+    datos: {
+      usuarios,
+      categorias,
+      gastos,
+      activos,
+      gastosRecurrentes,
+      presupuestos,
+      lineasCompra,
+    },
   };
 }
 
@@ -83,6 +95,7 @@ export interface ResumenImport {
   activos: number;
   gastosRecurrentes: number;
   presupuestos: number;
+  lineasCompra: number;
 }
 
 /**
@@ -95,6 +108,7 @@ export async function importarDatos(
   modo: ModoImport,
 ): Promise<ResumenImport> {
   const { datos } = copia;
+  const lineasCompra = datos.lineasCompra ?? [];
   const tablas = [
     db.usuarios,
     db.categorias,
@@ -102,6 +116,7 @@ export async function importarDatos(
     db.activos,
     db.gastosRecurrentes,
     db.presupuestos,
+    db.lineasCompra,
   ];
 
   await db.transaction('rw', tablas, async () => {
@@ -115,6 +130,7 @@ export async function importarDatos(
     await db.activos.bulkPut(datos.activos);
     await db.gastosRecurrentes.bulkPut(datos.gastosRecurrentes);
     await db.presupuestos.bulkPut(datos.presupuestos);
+    await db.lineasCompra.bulkPut(lineasCompra);
   });
 
   return {
@@ -124,6 +140,7 @@ export async function importarDatos(
     activos: datos.activos.length,
     gastosRecurrentes: datos.gastosRecurrentes.length,
     presupuestos: datos.presupuestos.length,
+    lineasCompra: lineasCompra.length,
   };
 }
 

@@ -37,6 +37,28 @@ export function monthLabel(key: string): string {
   return d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 }
 
+/** Suma (o resta) días a una fecha ISO 'YYYY-MM-DD' y devuelve ISO. */
+export function addDays(date: IsoDate, dias: number): IsoDate {
+  const [y, m, d] = date.split('-').map(Number);
+  const fecha = new Date(y, m - 1, d + dias);
+  const offset = fecha.getTimezoneOffset() * 60_000;
+  return new Date(fecha.getTime() - offset).toISOString().slice(0, 10);
+}
+
+/** Lunes de la semana actual en formato 'YYYY-MM-DD'. */
+export function weekStartIso(): IsoDate {
+  const hoy = todayIso();
+  const [y, m, d] = hoy.split('-').map(Number);
+  const dow = new Date(y, m - 1, d).getDay(); // 0=domingo..6=sábado
+  const haciaLunes = dow === 0 ? 6 : dow - 1;
+  return addDays(hoy, -haciaLunes);
+}
+
+/** Primer día del mes actual 'YYYY-MM-01'. */
+export function monthStartIso(): IsoDate {
+  return `${currentMonthKey()}-01`;
+}
+
 /** Formatea una fecha ISO como '2 jun 2026'. */
 export function formatDate(date: IsoDate): string {
   const [y, m, d] = date.split('-').map(Number);

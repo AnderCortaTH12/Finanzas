@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Camera, Package } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { useApp } from '@/app/providers';
 import { categoriasById } from '@/features/categories/categoryService';
@@ -11,6 +12,7 @@ import {
 } from './expenseService';
 import { currentMonthKey, previousMonthKey, monthLabel } from '@/lib/dates';
 import { QuickAddExpense } from './components/QuickAddExpense';
+import { ScanTicket } from './components/ScanTicket';
 import { ExpenseList } from './components/ExpenseList';
 import { CategoryPieChart } from './charts/CategoryPieChart';
 import { CategoryBreakdown } from './components/CategoryBreakdown';
@@ -20,6 +22,7 @@ import { MonthComparison } from './components/MonthComparison';
 export function ExpensesPage() {
   const { usuario, cargando } = useApp();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
 
   const mesActual = currentMonthKey();
   const mesAnterior = previousMonthKey();
@@ -56,6 +59,12 @@ export function ExpensesPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white capitalize">
           {monthLabel(mesActual)}
         </h1>
+        <Link
+          to="/inventario"
+          className="flex items-center gap-1 text-sm text-slate-400 hover:text-accent"
+        >
+          <Package size={18} /> Inventario
+        </Link>
       </header>
 
       {/* Gráfico de tarta con total */}
@@ -82,7 +91,19 @@ export function ExpensesPage() {
         <ExpenseList gastos={gastos ?? []} categorias={categorias} />
       </Card>
 
-      {/* Botón flotante para añadir gasto */}
+      {/* Botón flotante: escanear ticket con la cámara */}
+      <button
+        onClick={() => setScanOpen(true)}
+        className="fixed right-5 z-40 flex h-12 w-12 items-center justify-center
+                   rounded-full bg-white dark:bg-slate-800 text-accent shadow-lg
+                   border border-slate-200 dark:border-slate-700 active:scale-95 transition"
+        style={{ bottom: 'calc(9rem + env(safe-area-inset-bottom))' }}
+        aria-label="Escanear ticket"
+      >
+        <Camera size={24} />
+      </button>
+
+      {/* Botón flotante para añadir gasto a mano */}
       <button
         onClick={() => setSheetOpen(true)}
         className="fixed right-5 z-40 flex h-14 w-14 items-center justify-center
@@ -94,6 +115,7 @@ export function ExpensesPage() {
       </button>
 
       <QuickAddExpense open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <ScanTicket open={scanOpen} onClose={() => setScanOpen(false)} />
     </div>
   );
 }

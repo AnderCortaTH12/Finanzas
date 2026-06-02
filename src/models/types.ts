@@ -50,6 +50,22 @@ export interface Gasto {
   creadoEn: IsoDateTime;
 }
 
+/**
+ * Línea de un ticket escaneado (un producto con su precio).
+ * Sirve para el "inventario": saber cuántas veces se ha comprado algo.
+ * Cada línea apunta al Gasto que se creó con el total del ticket.
+ */
+export interface LineaCompra {
+  id: string;
+  usuarioId: string;
+  gastoId: string;            // FK -> Gasto (el gasto del total del ticket)
+  nombre: string;             // tal cual lo leyó/editó el usuario, p.ej. 'Huevos L'
+  nombreNorm: string;         // normalizado para agrupar, p.ej. 'huevos l'
+  importe: Cents;             // precio de esa línea
+  fecha: IsoDate;             // misma fecha que el gasto del ticket
+  creadoEn: IsoDateTime;
+}
+
 // ─────────────────────────────────────────────────────────────
 // FASE 2 — Activos
 // ─────────────────────────────────────────────────────────────
