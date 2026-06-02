@@ -54,6 +54,8 @@ export interface Gasto {
 // FASE 2 — Activos
 // ─────────────────────────────────────────────────────────────
 
+export type EstadoActivo = 'activa' | 'vendida';
+
 export interface Activo {
   id: string;
   usuarioId: string;
@@ -65,6 +67,12 @@ export interface Activo {
   fechaUltimoPrecio?: IsoDateTime; // para la regla de las 6h
   moneda?: string;           // ISO 4217, por defecto 'EUR'
   creadoEn: IsoDateTime;
+  /** 'activa' (en cartera) o 'vendida' (en histórico). Por defecto 'activa'. */
+  estado?: EstadoActivo;
+  /** Precio de venta por unidad (solo si está vendida). */
+  precioVenta?: Cents;
+  /** Fecha de la venta (solo si está vendida). */
+  fechaVenta?: IsoDateTime;
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -8,6 +8,8 @@ export interface NuevoActivo {
   nombre: string;
   cantidad: number;
   precioCompra: Cents; // por unidad
+  /** Precio actual ya conocido al crear (modo "por importe"), opcional. */
+  ultimoPrecio?: Cents;
 }
 
 export async function addActivo(data: NuevoActivo): Promise<string> {
@@ -17,6 +19,8 @@ export async function addActivo(data: NuevoActivo): Promise<string> {
     ticker: data.ticker.trim().toUpperCase(),
     id,
     moneda: 'USD',
+    estado: 'activa',
+    fechaUltimoPrecio: data.ultimoPrecio !== undefined ? nowIso() : undefined,
     creadoEn: nowIso(),
   });
   return id;
@@ -33,8 +37,32 @@ export async function updateActivo(
   await db.activos.update(id, cambios);
 }
 
+/** Marca un activo como vendido, guardando precio y fecha de venta. */
+export async function venderActivo(id: string, precioVenta: Cents): Promise<void> {
+  await db.activos.update(id, {
+    estado: 'vendida',
+    precioVenta,
+    fechaVenta: nowIso(),
+  });
+}
+
+/** Revierte una venta: vuelve a poner el activo en la cartera. */
+export async function reactivarActivo(id: string): Promise<void> {
+  await db.activos.update(id, {
+    estado: 'activa',
+    precioVenta: undefined,
+    fechaVenta: undefined,
+  });
+}
+
+/** Todos los activos del usuario (activos + vendidos). */
 export function listActivos(usuarioId: string): Promise<Activo[]> {
   return db.activos.where('usuarioId').equals(usuarioId).toArray();
+}
+
+/** ¿Está el activo en cartera (no vendido)? Trata 'estado' ausente como activa. */
+export function esActiva(a: Activo): boolean {
+  return a.estado !== 'vendida';
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -68,8 +96,10 @@ export interface ResumenCartera {
   plusvaliaPct: number | null;
 }
 
+/** Cartera = solo activos en posesión (no vendidos). */
 export function calcularCartera(activos: Activo[]): ResumenCartera {
   const posiciones = activos
+    .filter(esActiva)
     .map(calcularPosicion)
     .sort((a, b) => (b.valorActual ?? b.coste) - (a.valorActual ?? a.coste));
 
@@ -83,4 +113,51 @@ export function calcularCartera(activos: Activo[]): ResumenCartera {
   const plusvaliaPct = costeTotal > 0 ? (plusvaliaTotal / costeTotal) * 100 : null;
 
   return { posiciones, costeTotal, valorTotal, plusvaliaTotal, plusvaliaPct };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Ventas realizadas (histórico)
+// ─────────────────────────────────────────────────────────────
+
+export interface PosicionVendida {
+  activo: Activo;
+  coste: Cents; // precioCompra * cantidad
+  ingreso: Cents; // precioVenta * cantidad
+  ganancia: Cents; // ingreso - coste (realizada)
+  gananciaPct: number; // %
+}
+
+export function calcularVendida(activo: Activo): PosicionVendida {
+  const coste = Math.round(activo.precioCompra * activo.cantidad);
+  const ingreso = Math.round((activo.precioVenta ?? 0) * activo.cantidad);
+  const ganancia = ingreso - coste;
+  const gananciaPct = coste > 0 ? (ganancia / coste) * 100 : 0;
+  return { activo, coste, ingreso, ganancia, gananciaPct };
+}
+
+export interface ResumenRealizado {
+  vendidas: PosicionVendida[];
+  gananciaTotal: Cents;
+  costeTotal: Cents;
+  gananciaPct: number | null;
+}
+
+/** Resumen de todo lo vendido: ganancia/pérdida realizada acumulada. */
+export function calcularRealizado(activos: Activo[]): ResumenRealizado {
+  const vendidas = activos
+    .filter((a) => a.estado === 'vendida')
+    .map(calcularVendida)
+    .sort((a, b) =>
+      (b.activo.fechaVenta ?? '').localeCompare(a.activo.fechaVenta ?? ''),
+    );
+
+  let gananciaTotal = 0;
+  let costeTotal = 0;
+  for (const v of vendidas) {
+    gananciaTotal += v.ganancia;
+    costeTotal += v.coste;
+  }
+  const gananciaPct = costeTotal > 0 ? (gananciaTotal / costeTotal) * 100 : null;
+
+  return { vendidas, gananciaTotal, costeTotal, gananciaPct };
 }

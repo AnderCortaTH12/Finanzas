@@ -33,6 +33,21 @@ export class FinanzasDB extends Dexie {
       gastosRecurrentes: 'id, usuarioId, proximaFecha',
       presupuestos: 'id, usuarioId, categoriaId',
     });
+
+    // v2: añade índice 'estado' a activos para separar cartera y vendidas.
+    // Los activos existentes sin 'estado' se tratan como 'activa'.
+    this.version(2)
+      .stores({
+        activos: 'id, usuarioId, ticker, estado',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('activos')
+          .toCollection()
+          .modify((a) => {
+            if (!a.estado) a.estado = 'activa';
+          }),
+      );
   }
 }
 
