@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "PowerShell($procs = Get-Process node -ErrorAction SilentlyContinue; if \\($procs\\) { \"Procesos Node activos: \" + $procs.Count } else { \"No hay ningun proceso Node corriendo -> el servidor NO esta arrancado\" }; $listen = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -ge 3000 -and $_.LocalPort -le 9000 } | Select-Object LocalAddress, LocalPort -Unique; if \\($listen\\) { \"Puertos en escucha \\(3000-9000\\):\"; $listen } else { \"Ningun puerto de desarrollo en escucha\" })",
+      "PowerShell(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(git --version)",
+      "Bash(git config *)",
+      "Bash(git init *)",
+      "Bash(git branch *)",
+      "Bash(git add *)"
+    ]
+  }
+}
