@@ -22,7 +22,11 @@
       "Bash(node -p \"require\\('./node_modules/tesseract.js/package.json'\\).version\")",
       "Bash(node -p \"require\\('./node_modules/tesseract.js-core/package.json'\\).version\")",
       "Bash(curl -sSL -o public/tesseract/lang/spa.traineddata.gz https://tessdata.projectnaptha.com/4.0.0_fast/spa.traineddata.gz)",
-      "Bash(stat -c %s public/tesseract/lang/spa.traineddata.gz)"
+      "Bash(stat -c %s public/tesseract/lang/spa.traineddata.gz)",
+      "PowerShell(npm install *)",
+      "PowerShell(npx tsc -b --pretty false 2>&1 | Select-Object -First 30; \"EXIT:$LASTEXITCODE\")",
+      "WebFetch(domain:supabase.com)",
+      "Bash(grep -E \"^\\\\.env$\")"
     ]
   }
 }

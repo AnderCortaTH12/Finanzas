@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { AppRoutes } from './routes';
 import { ProfileGate } from '@/features/profiles/ProfileGate';
 import { ThemeProvider } from '@/features/theme/ThemeProvider';
+import { AuthGate } from '@/features/auth/AuthGate';
 
 /** Decide qué mostrar según haya o no un perfil activo y desbloqueado. */
 function Gated() {
@@ -34,9 +35,11 @@ function Gated() {
 export function App() {
   return (
     <ThemeProvider>
-      <AppProvider>
-        <Gated />
-      </AppProvider>
+      <AuthGate>
+        <AppProvider>
+          <Gated />
+        </AppProvider>
+      </AuthGate>
     </ThemeProvider>
   );
 }
